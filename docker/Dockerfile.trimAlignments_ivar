@@ -1,0 +1,39 @@
+# To build: docker build -t ivar:v0.1 - < Dockerfile.trimAlignments_ivar
+
+FROM debian:buster
+
+# TODO change ivar version
+ENV pengu_software_version_htslib=1.10.2 \
+pengu_software_version_samtools=1.10 \
+pengu_software_version_ivar=1.0.1
+
+
+RUN apt-get update && apt-get install -y bzip2 curl g++ make zlib1g-dev libbz2-dev liblzma-dev unzip \
+autoconf libncurses5-dev 
+
+# Install htslib
+RUN curl -fsSL "https://github.com/samtools/htslib/releases/download/${pengu_software_version_htslib}/htslib-${pengu_software_version_htslib}.tar.bz2" | tar -xj
+WORKDIR htslib-${pengu_software_version_htslib}
+RUN ./configure && make && make install
+ENV PATH "$PATH:/htslib-${pengu_software_version_htslib}"
+RUN ln -s /usr/local/lib/libhts.so.3 /usr/lib/
+
+# Install samtools
+WORKDIR /
+RUN curl -fsSL "https://github.com/samtools/samtools/releases/download/${pengu_software_version_samtools}/samtools-${pengu_software_version_samtools}.tar.bz2" | tar -xj
+WORKDIR samtools-${pengu_software_version_samtools}
+RUN ./configure && make && make install
+ENV PATH "$PATH:/samtools-${pengu_software_version_samtools}"
+
+# Install ivar
+#WORKDIR /
+#RUN curl -fsSL "https://github.com/andersen-lab/ivar/archive/v${pengu_software_version_ivar}.tar.gz" | tar -xz
+#WORKDIR ivar-${pengu_software_version_ivar}
+#RUN ./autogen.sh && ./configure && make && make install
+
+# temp install ivar with hotfix for segfault (issue 8 on andersen-lab github)
+WORKDIR /
+RUN curl -fsSL "https://github.com/tonbar/ivar/archive/master.zip" -o ivar.zip && unzip ivar.zip
+WORKDIR ivar-master
+RUN ./autogen.sh && ./configure && make && make install
+ENV PATH "$PATH:/ivar-master"

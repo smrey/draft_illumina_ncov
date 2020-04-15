@@ -1,0 +1,27 @@
+# To build: docker build -t pyfilter:v0.1 - < Dockerfile.filterVariants_python
+
+FROM debian:buster
+
+ENV pengu_software_version_python=3.6.10 \
+pengu_software_version_pyvcf=0.6.8
+
+
+RUN apt-get update && apt-get install -y bzip2 curl g++ make  \
+    libbz2-dev libc6-dev libdb-dev libexpat1-dev libhdf5-dev libffi-dev \
+    libncursesw5-dev libreadline-dev libsqlite3-dev libssl-dev liblzma-dev libtinfo-dev \
+    libcairo2-dev libjpeg62-turbo-dev libpango1.0-dev libgif-dev libgirepository1.0-dev
+
+# Install pengu_software_version_python
+RUN curl -fsSL "https://www.python.org/ftp/python/${pengu_software_version_python}/Python-${pengu_software_version_python}.tgz" | tar -xz
+WORKDIR /Python-${pengu_software_version_python}
+RUN ./configure && make && make install
+
+# Make requirements file on the fly (copy didn't work under certain conditions (contextless build) and was concerned about compatibility with Singularity- may need to change later)
+RUN printf '%s\n' \
+pyvcf==${pengu_software_version_pyvcf} \
+> requirements.txt
+
+# install python modules
+RUN pip3 install -r requirements.txt
+
+ENV PATH "$PATH:/Python-${pengu_software_version_python}"

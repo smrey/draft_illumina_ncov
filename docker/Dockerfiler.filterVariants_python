@@ -1,0 +1,10 @@
+# To build: docker build -t pyfilter:v0.1 - < Dockerfile.filterVariants_python
+
+FROM debian:buster
+
+# TODO change ivar version
+ENV pengu_software_version_python=VERSION \
+pengu_software_version_pyvcf=VERSION
+
+
+RUN apt-get update && apt-get install -y bzip2 curl g++  MORE DEPENDENCIES
